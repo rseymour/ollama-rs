@@ -3,6 +3,7 @@ use crate::generation::chat::{ChatMessage, ChatMessageResponse};
 use crate::generation::functions::pipelines::openai::DEFAULT_SYSTEM_TEMPLATE;
 use crate::generation::functions::pipelines::RequestParserBase;
 use crate::generation::functions::tools::Tool;
+use crate::generation::functions::Toolbox;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -64,6 +65,19 @@ impl OpenAIFunctionCall {
 
 #[async_trait]
 impl RequestParserBase for OpenAIFunctionCall {
+    async fn parse_toolbox(
+        &self,
+        _tool_call_content: &str,
+        _model_name: String,
+        _toolbox: &dyn Toolbox,
+    ) -> Result<Vec<ChatMessageResponse>, ChatMessageResponse> {
+        todo!()
+    }
+
+    async fn get_system_message_toolbox(&self, _tools: &dyn Toolbox) -> ChatMessage {
+        todo!()
+    }
+
     async fn parse(
         &self,
         input: &str,
