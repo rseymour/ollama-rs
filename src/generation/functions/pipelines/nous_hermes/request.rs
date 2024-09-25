@@ -3,6 +3,7 @@ use crate::generation::chat::{ChatMessage, ChatMessageResponse};
 use crate::generation::functions::pipelines::nous_hermes::DEFAULT_SYSTEM_TEMPLATE;
 use crate::generation::functions::pipelines::RequestParserBase;
 use crate::generation::functions::tools::Tool;
+use crate::generation::functions::Toolbox;
 use async_trait::async_trait;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -85,6 +86,19 @@ impl NousFunctionCall {
 
 #[async_trait]
 impl RequestParserBase for NousFunctionCall {
+    async fn parse_toolbox(
+        &self,
+        tool_call_content: &str,
+        model_name: String,
+        toolbox: &dyn Toolbox,
+    ) -> Result<Vec<ChatMessageResponse>, ChatMessageResponse> {
+        todo!()
+    }
+
+    async fn get_system_message_toolbox(&self, _tools: &dyn Toolbox) -> ChatMessage {
+        todo!()
+    }
+
     async fn parse(
         &self,
         input: &str,
