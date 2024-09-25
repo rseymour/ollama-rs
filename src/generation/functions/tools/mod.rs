@@ -16,6 +16,12 @@ use std::error::Error;
 use std::string::String;
 
 #[async_trait]
+pub trait Toolbox: Send + Sync {
+    fn get_impl_json(&self) -> Value;
+    fn call_value_fn(&self, tool_name: &str, tool_args: Value) -> Value;
+}
+
+#[async_trait]
 pub trait Tool: Send + Sync {
     /// Returns the name of the tool.
     fn name(&self) -> String;

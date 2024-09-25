@@ -1,16 +1,19 @@
 pub mod pipelines;
 pub mod request;
+pub mod toolbox_request;
 pub mod tools;
 
 pub use crate::generation::functions::pipelines::meta_llama::request::LlamaFunctionCall;
 pub use crate::generation::functions::pipelines::nous_hermes::request::NousFunctionCall;
 pub use crate::generation::functions::pipelines::openai::request::OpenAIFunctionCall;
 pub use crate::generation::functions::request::FunctionCallRequest;
+use toolbox_request::ToolboxCallRequest;
 pub use tools::Browserless;
 pub use tools::DDGSearcher;
 pub use tools::Scraper;
 pub use tools::SerperSearchTool;
 pub use tools::StockScraper;
+pub use tools::Toolbox;
 
 use crate::error::OllamaError;
 use crate::generation::chat::request::ChatMessageRequest;
@@ -28,6 +31,66 @@ impl crate::Ollama {
 
     fn has_system_prompt_history(&mut self) -> bool {
         self.get_messages_history("default").is_some()
+    }
+
+    #[cfg(feature = "chat-history")]
+    pub async fn send_toolbox_call_with_history(
+        &mut self,
+        request: &mut ToolboxCallRequest<'_>,
+        parser: Arc<dyn RequestParserBase>,
+        id: String,
+    ) -> Result<ChatMessageResponse, OllamaError> {
+        let mut request = request;
+
+        if !self.has_system_prompt_history() {
+            let system_prompt = parser.get_system_message_toolbox(request.toolbox).await;
+            self.set_system_response(id.clone(), system_prompt.content);
+
+            //format input
+            let formatted_query = ChatMessage::user(
+                parser.format_query(&request.chat.messages.first().unwrap().content),
+            );
+            //replace with formatted_query with previous chat_message
+            request.chat.messages.remove(0);
+            request.chat.messages.insert(0, formatted_query);
+        }
+
+        let tool_call_result = self
+            .send_chat_messages_with_history(
+                ChatMessageRequest::new(
+                    request.chat.model_name.clone(),
+                    request.chat.messages.clone(),
+                ),
+                id.clone(),
+            )
+            .await?;
+
+        let tool_call_content: String = tool_call_result.message.clone().unwrap().content;
+        let result = parser
+            .parse_toolbox(
+                &tool_call_content,
+                request.chat.model_name.clone(),
+                request.toolbox,
+            )
+            .await;
+
+        match result {
+            Ok(r) => {
+                for response in &r {
+                    self.add_assistant_response(
+                        id.clone(),
+                        response.message.clone().unwrap().content,
+                    );
+                }
+                Ok(r.last()
+                    .expect("we have at least a last response in our toolbox call vector")
+                    .clone())
+            }
+            Err(e) => {
+                self.add_assistant_response(id.clone(), e.message.clone().unwrap().content);
+                Err(OllamaError::from(e.message.unwrap().content))
+            }
+        }
     }
 
     #[cfg(feature = "chat-history")]
