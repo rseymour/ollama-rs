@@ -44,7 +44,7 @@ impl Toolbox for MyToolBox {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    const MODEL: &str = "llama3.1:latest";
+    const MODEL: &str = "llama3.2:3b";
     let mut ollama = Ollama::default();
     let parser = Arc::new(LlamaFunctionCall {});
     let my_toolbox = MyToolBox;
