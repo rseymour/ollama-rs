@@ -64,7 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     &my_toolbox,
                     vec![ChatMessage::user(input.to_string())],
                 ),
-                parser.clone(), // this is messed up because it calls into parse() and I renamed it to parse_toolbox()
+                parser.clone(),
             )
             .await
             .unwrap();
