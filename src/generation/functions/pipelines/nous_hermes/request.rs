@@ -88,9 +88,9 @@ impl NousFunctionCall {
 impl RequestParserBase for NousFunctionCall {
     async fn parse_toolbox(
         &self,
-        tool_call_content: &str,
-        model_name: String,
-        toolbox: &dyn Toolbox,
+        _tool_call_content: &str,
+        _model_name: String,
+        _toolbox: &dyn Toolbox,
     ) -> Result<Vec<ChatMessageResponse>, ChatMessageResponse> {
         todo!()
     }
