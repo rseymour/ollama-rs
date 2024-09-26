@@ -143,6 +143,33 @@ impl crate::Ollama {
         }
     }
 
+    pub async fn send_toolbox_call(
+        &self,
+        request: &mut ToolboxCallRequest<'_>,
+        parser: Arc<dyn RequestParserBase>,
+    ) -> Result<ChatMessageResponse, OllamaError> {
+        let mut request = request;
+
+        request.chat.stream = false;
+        let system_prompt = parser.get_system_message_toolbox(request.toolbox).await;
+        let model_name = request.chat.model_name.clone();
+
+        //Make sure the first message in chat is the system prompt
+        if !self.has_system_prompt(&request.chat.messages, &system_prompt.content) {
+            request.chat.messages.insert(0, system_prompt);
+        }
+        let result = self.send_chat_messages(request.chat.clone()).await?;
+        let response_content: String = result.message.clone().unwrap().content;
+
+        let result = parser
+            .parse_toolbox(&response_content, model_name, request.toolbox)
+            .await;
+        match result {
+            Ok(r) => Ok(r.first().expect("only one tool for now FIXME").clone()),
+            Err(e) => Err(OllamaError::from(e.message.unwrap().content)),
+        }
+    }
+
     pub async fn send_function_call(
         &self,
         request: FunctionCallRequest,
