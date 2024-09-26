@@ -40,8 +40,6 @@ impl crate::Ollama {
         parser: Arc<dyn RequestParserBase>,
         id: String,
     ) -> Result<ChatMessageResponse, OllamaError> {
-        let mut request = request;
-
         if !self.has_system_prompt_history() {
             let system_prompt = parser.get_system_message_toolbox(request.toolbox).await;
             self.set_system_response(id.clone(), system_prompt.content);
@@ -148,8 +146,6 @@ impl crate::Ollama {
         request: &mut ToolboxCallRequest<'_>,
         parser: Arc<dyn RequestParserBase>,
     ) -> Result<ChatMessageResponse, OllamaError> {
-        let mut request = request;
-
         request.chat.stream = false;
         let system_prompt = parser.get_system_message_toolbox(request.toolbox).await;
         let model_name = request.chat.model_name.clone();

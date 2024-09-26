@@ -2,11 +2,8 @@ use auto_toolbox::{add_to_toolbox, toolbox};
 use ollama_rs::{
     generation::{
         chat::ChatMessage,
-        completion::{request::GenerationRequest, GenerationContext, GenerationResponseStream},
         functions::{
-            toolbox_request::ToolboxCallRequest,
-            tools::{DDGSearcher, Scraper},
-            FunctionCallRequest, LlamaFunctionCall, Toolbox,
+            toolbox_request::ToolboxCallRequest, LlamaFunctionCall, Toolbox,
         },
     },
     Ollama,
@@ -15,7 +12,6 @@ use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
 use tokio::io::{stdout, AsyncWriteExt};
-use tokio_stream::StreamExt;
 
 struct MyToolBox;
 
@@ -45,7 +41,7 @@ impl Toolbox for MyToolBox {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     const MODEL: &str = "llama3.2:3b";
-    let mut ollama = Ollama::default();
+    let ollama = Ollama::default();
     let parser = Arc::new(LlamaFunctionCall {});
     let my_toolbox = MyToolBox;
     let mut stdout = stdout();
