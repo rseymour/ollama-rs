@@ -63,8 +63,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // ------------
-        stdout.write_all(b"got input\n ").await?;
-        stdout.flush().await?;
         let result = ollama
             .send_toolbox_call(
                 &mut ToolboxCallRequest::new(
@@ -78,16 +76,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap();
         //--------
 
-        stdout
-            .write_all(format!("got result\n {:#?} ", result).as_bytes())
-            .await?;
-        stdout.flush().await?;
         if let Some(res) = result.message {
-            let return_value: Vec<Value> = serde_json::from_str(&res.content)?;
-            for search_result in return_value.iter() {
-                let resp = format!("{} at {}", search_result["title"], search_result["link"]);
-                stdout.write_all(resp.as_bytes()).await?;
-            }
+            let return_value: Value = serde_json::from_str(&res.content)?;
+            let resp = format!("{}", return_value);
+            stdout.write_all(resp.as_bytes()).await?;
             stdout.flush().await?;
         }
     }
